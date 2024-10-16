@@ -66,17 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
         userProfileSection.style.display = currentProfile.username ? 'block' : 'none';
     }
 
-    function savePostsToLocalStorage() {
-        localStorage.setItem('posts', JSON.stringify(Array.from(postsContainer.children).map(post => post.outerHTML)));
-    }
-
-    function loadPostsFromLocalStorage() {
-        const posts = JSON.parse(localStorage.getItem('posts'));
-        if (posts) {
-            postsContainer.innerHTML = posts.join('');
-        }
-    }
-
     async function login(username, password) {
         const response = await fetch('http://localhost:5000/login', {
             method: 'POST',
@@ -111,54 +100,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    burger.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-        burger.classList.toggle('active');
-    });
+    async function loadPosts() {
+        const response = await fetch('http://localhost:5000/posts');
+        const posts = await response.json();
+        postsContainer.innerHTML = '';
+        posts.forEach(post => {
+            const postElement = createPostElement(post);
+            postsContainer.appendChild(postElement);
+        });
+    }
 
-    postBtn.addEventListener('click', () => {
-        const postContent = postInput.value.trim();
-        if (!currentProfile.username) {
-            alert('Пожалуйста, войдите или зарегистрируйтесь.');
-            return;
+    async function createPost(content, media) {
+        const response = await fetch('http://localhost:5000/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: currentProfile.username, content, media })
+        });
+        if (response.ok) {
+            alert('Пост успешно опубликован!');
+            loadPosts();
+        } else {
+            alert('Ошибка при публикации поста.');
         }
-        if (postContent || mediaInput.files.length > 0) {
-            const postElement = createPostElement(postContent);
-            postsContainer.prepend(postElement);
-            postInput.value = '';
-            mediaInput.value = '';
-            savePostsToLocalStorage();
-        }
-    });
+    }
 
-    function createPostElement(content) {
-        const post = document.createElement('div');
-        post.classList.add('post');
+    function createPostElement(post) {
+        const postElement = document.createElement('div');
+        postElement.classList.add('post');
 
         const postHeader = document.createElement('div');
         postHeader.classList.add('post-header');
 
         const postAuthor = document.createElement('div');
         postAuthor.classList.add('post-author');
-        postAuthor.textContent = currentProfile.username;
+        postAuthor.textContent = post.username;
         postAuthor.addEventListener('click', () => {
-            showUserProfile(currentProfile.username);
+            showUserProfile(post.username);
         });
 
         const postTime = document.createElement('div');
         postTime.classList.add('post-time');
-        postTime.textContent = new Date().toLocaleString();
+        postTime.textContent = new Date(post.createdAt).toLocaleString();
 
         postHeader.appendChild(postAuthor);
         postHeader.appendChild(postTime);
 
         const postContent = document.createElement('div');
         postContent.classList.add('post-content');
-        postContent.textContent = content;
+        postContent.textContent = post.content;
 
-        if (mediaInput.files.length > 0) {
-            const mediaElement = document.createElement(mediaInput.files[0].type.startsWith('image') ? 'img' : 'video');
-            mediaElement.src = URL.createObjectURL(mediaInput.files[0]);
+        if (post.media) {
+            const mediaElement = document.createElement(post.media.startsWith('data:image') ? 'img' : 'video');
+            mediaElement.src = post.media;
             mediaElement.controls = true;
             postContent.appendChild(mediaElement);
         }
@@ -176,18 +171,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const likeCount = document.createElement('span');
         likeCount.classList.add('like-count');
-        likeCount.textContent = '0';
+        likeCount.textContent = post.likes;
 
         const commentIcon = document.createElement('i');
         commentIcon.classList.add('fas', 'fa-comment');
         commentIcon.addEventListener('click', () => {
-            const commentForm = post.querySelector('.comment-form');
+            const commentForm = postElement.querySelector('.comment-form');
             commentForm.style.display = commentForm.style.display === 'flex' ? 'none' : 'flex';
         });
 
         const commentCount = document.createElement('span');
         commentCount.classList.add('comment-count');
-        commentCount.textContent = '0';
+        commentCount.textContent = post.comments.length;
 
         const editIcon = document.createElement('i');
         editIcon.classList.add('fas', 'fa-edit');
@@ -195,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const newContent = prompt('Редактировать пост:', postContent.textContent);
             if (newContent !== null) {
                 postContent.textContent = newContent;
-                savePostsToLocalStorage();
             }
         });
 
@@ -203,8 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteIcon.classList.add('fas', 'fa-trash');
         deleteIcon.addEventListener('click', () => {
             if (confirm('Удалить пост?')) {
-                post.remove();
-                savePostsToLocalStorage();
+                postElement.remove();
             }
         });
 
@@ -230,6 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const comments = document.createElement('div');
         comments.classList.add('comments');
 
+        post.comments.forEach(comment => {
+            const commentElement = createCommentElement(comment);
+            comments.appendChild(commentElement);
+        });
+
         const commentForm = document.createElement('div');
         commentForm.classList.add('comment-form');
 
@@ -242,42 +240,41 @@ document.addEventListener('DOMContentLoaded', () => {
         commentBtn.addEventListener('click', () => {
             const commentContent = commentInput.value.trim();
             if (commentContent) {
-                const commentElement = createCommentElement(commentContent);
+                const commentElement = createCommentElement({ username: currentProfile.username, content: commentContent });
                 comments.appendChild(commentElement);
                 commentInput.value = '';
                 commentCount.textContent = parseInt(commentCount.textContent) + 1;
-                savePostsToLocalStorage();
             }
         });
 
         commentForm.appendChild(commentInput);
         commentForm.appendChild(commentBtn);
 
-        post.appendChild(postHeader);
-        post.appendChild(postContent);
-        post.appendChild(postActions);
-        post.appendChild(comments);
-        post.appendChild(commentForm);
+        postElement.appendChild(postHeader);
+        postElement.appendChild(postContent);
+        postElement.appendChild(postActions);
+        postElement.appendChild(comments);
+        postElement.appendChild(commentForm);
 
-        return post;
+        return postElement;
     }
 
-    function createCommentElement(content) {
-        const comment = document.createElement('div');
-        comment.classList.add('comment');
+    function createCommentElement(comment) {
+        const commentElement = document.createElement('div');
+        commentElement.classList.add('comment');
 
         const commentAuthor = document.createElement('div');
         commentAuthor.classList.add('comment-author');
-        commentAuthor.textContent = currentProfile.username;
+        commentAuthor.textContent = comment.username;
 
         const commentContent = document.createElement('div');
         commentContent.classList.add('comment-content');
-        commentContent.textContent = content;
+        commentContent.textContent = comment.content;
 
-        comment.appendChild(commentAuthor);
-        comment.appendChild(commentContent);
+        commentElement.appendChild(commentAuthor);
+        commentElement.appendChild(commentContent);
 
-        return comment;
+        return commentElement;
     }
 
     function showUserProfile(username) {
@@ -368,6 +365,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    loadPostsFromLocalStorage();
+    loadPosts();
     updateProfileUI();
+
+    postBtn.addEventListener('click', () => {
+        const postContent = postInput.value.trim();
+        if (!currentProfile.username) {
+            alert('Пожалуйста, войдите или зарегистрируйтесь.');
+            return;
+        }
+        if (postContent || mediaInput.files.length > 0) {
+            const media = mediaInput.files.length > 0 ? URL.createObjectURL(mediaInput.files[0]) : '';
+            createPost(postContent, media);
+            postInput.value = '';
+            mediaInput.value = '';
+        }
+    });
 });
