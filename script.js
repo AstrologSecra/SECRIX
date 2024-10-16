@@ -67,62 +67,78 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function login(username, password) {
-        const response = await fetch('http://localhost:5000/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
-        if (response.ok) {
-            currentProfile = await response.json();
-            updateProfileUI();
-            loginModal.style.display = 'none';
-            loginBtn.style.display = 'none';
-            alert('Вход выполнен успешно!');
-        } else {
-            alert('Неверный ник или пароль.');
+        try {
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            if (response.ok) {
+                currentProfile = await response.json();
+                updateProfileUI();
+                loginModal.style.display = 'none';
+                loginBtn.style.display = 'none';
+                alert('Вход выполнен успешно!');
+            } else {
+                alert('Неверный ник или пароль.');
+            }
+        } catch (error) {
+            alert('Ошибка сервера.');
         }
     }
 
     async function register(username, password) {
-        const response = await fetch('http://localhost:5000/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
-        if (response.ok) {
-            alert('Регистрация выполнена успешно!');
-        } else {
-            alert('Пользователь с таким ником уже существует.');
+        try {
+            const response = await fetch('http://localhost:5000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            if (response.ok) {
+                alert('Регистрация выполнена успешно!');
+            } else {
+                alert('Пользователь с таким ником уже существует.');
+            }
+        } catch (error) {
+            alert('Ошибка сервера.');
         }
     }
 
     async function loadPosts() {
-        const response = await fetch('http://localhost:5000/posts');
-        const posts = await response.json();
-        postsContainer.innerHTML = '';
-        posts.forEach(post => {
-            const postElement = createPostElement(post);
-            postsContainer.appendChild(postElement);
-        });
+        try {
+            const response = await fetch('http://localhost:5000/posts');
+            const posts = await response.json();
+            postsContainer.innerHTML = '';
+            posts.forEach(post => {
+                const postElement = createPostElement(post);
+                postsContainer.appendChild(postElement);
+            });
+        } catch (error) {
+            alert('Ошибка загрузки постов.');
+        }
     }
 
     async function createPost(content, media) {
-        const response = await fetch('http://localhost:5000/posts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username: currentProfile.username, content, media })
-        });
-        if (response.ok) {
-            alert('Пост успешно опубликован!');
-            loadPosts();
-        } else {
-            alert('Ошибка при публикации поста.');
+        try {
+            const response = await fetch('http://localhost:5000/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: currentProfile.username, content, media })
+            });
+            if (response.ok) {
+                alert('Пост успешно опубликован!');
+                loadPosts();
+            } else {
+                alert('Ошибка при публикации поста.');
+            }
+        } catch (error) {
+            alert('Ошибка сервера.');
         }
     }
 
