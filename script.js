@@ -77,21 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveUsersToLocalStorage() {
-        localStorage.setItem('users', JSON.stringify(users));
-    }
-
-    function loadUsersFromLocalStorage() {
-        const users = JSON.parse(localStorage.getItem('users'));
-        return users || [];
-    }
-
-    let users = loadUsersFromLocalStorage();
-
-    function login(username, password) {
-        const user = users.find(user => user.username === username && user.password === password);
-        if (user) {
-            currentProfile = user;
+    async function login(username, password) {
+        const response = await fetch('http://localhost:5000/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
+        if (response.ok) {
+            currentProfile = await response.json();
             updateProfileUI();
             loginModal.style.display = 'none';
             loginBtn.style.display = 'none';
@@ -101,14 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function register(username, password) {
-        const existingUser = users.find(user => user.username === username);
-        if (existingUser) {
-            alert('Пользователь с таким ником уже существует.');
-        } else {
-            users.push({ username, password, photo: '', isAdmin: username === 'admin' });
-            saveUsersToLocalStorage();
+    async function register(username, password) {
+        const response = await fetch('http://localhost:5000/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
+        if (response.ok) {
             alert('Регистрация выполнена успешно!');
+        } else {
+            alert('Пользователь с таким ником уже существует.');
         }
     }
 
