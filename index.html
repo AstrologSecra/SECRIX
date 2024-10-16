@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secrix</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Secrix</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Главная</a></li>
+                <li><a href="#notifications">Уведомления</a></li>
+                <li><a href="#messages">Сообщения</a></li>
+                <li><button id="profile-btn" class="btn">Мой профиль</button></li>
+                <li><button id="login-btn" class="btn">Вход / Регистрация</button></li>
+            </ul>
+            <div class="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </nav>
+    </header>
+
+    <section id="home" class="feed">
+        <div class="post-form">
+            <textarea id="post-input" placeholder="Что у вас нового?"></textarea>
+            <div class="media-upload">
+                <input type="file" id="media-input" accept="image/*,video/*,.gif">
+            </div>
+            <button id="post-btn" class="btn">Опубликовать</button>
+        </div>
+        <div id="posts" class="posts">
+            <!-- Посты будут добавляться здесь -->
+        </div>
+    </section>
+
+    <section id="user-profile" class="user-profile" style="display: none;">
+        <div class="profile-header">
+            <div class="profile-photo-container" id="profile-photo-container">
+                <img src="" alt="Профиль" class="profile-photo" id="profile-photo">
+                <span id="profile-initials" class="profile-initials"></span>
+            </div>
+            <h2 id="profile-username"></h2>
+            <button id="edit-profile-btn" class="btn">Редактировать профиль</button>
+        </div>
+        <div id="profile-posts" class="posts">
+            <!-- Посты пользователя будут добавляться здесь -->
+        </div>
+    </section>
+
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Вход / Регистрация</h2>
+            <input type="text" id="login-username" placeholder="Ник">
+            <input type="password" id="login-password" placeholder="Пароль">
+            <button id="login-submit-btn" class="btn">Войти</button>
+            <button id="register-submit-btn" class="btn">Зарегистрироваться</button>
+        </div>
+    </div>
+
+    <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Редактировать профиль</h2>
+            <input type="text" id="new-username" placeholder="Новый ник">
+            <input type="file" id="new-photo" accept="image/*">
+            <button id="save-profile-btn" class="btn">Сохранить</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Secrix. Все права защищены.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
