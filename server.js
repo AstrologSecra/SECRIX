@@ -41,35 +41,51 @@ const Post = mongoose.model('Post', postSchema);
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-        return res.status(400).send('Пользователь с таким ником уже существует.');
+    try {
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).send('Пользователь с таким ником уже существует.');
+        }
+        const newUser = new User({ username, password, photo: '', isAdmin: username === 'admin' });
+        await newUser.save();
+        res.status(201).send('Регистрация выполнена успешно!');
+    } catch (error) {
+        res.status(500).send('Ошибка сервера.');
     }
-    const newUser = new User({ username, password, photo: '', isAdmin: username === 'admin' });
-    await newUser.save();
-    res.status(201).send('Регистрация выполнена успешно!');
 });
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    const user = await User.findOne({ username, password });
-    if (user) {
-        res.status(200).json(user);
-    } else {
-        res.status(401).send('Неверный ник или пароль.');
+    try {
+        const user = await User.findOne({ username, password });
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            res.status(401).send('Неверный ник или пароль.');
+        }
+    } catch (error) {
+        res.status(500).send('Ошибка сервера.');
     }
 });
 
 app.post('/posts', async (req, res) => {
     const { username, content, media } = req.body;
-    const newPost = new Post({ username, content, media, likes: 0, comments: [] });
-    await newPost.save();
-    res.status(201).send('Пост успешно опубликован!');
+    try {
+        const newPost = new Post({ username, content, media, likes: 0, comments: [] });
+        await newPost.save();
+        res.status(201).send('Пост успешно опубликован!');
+    } catch (error) {
+        res.status(500).send('Ошибка сервера.');
+    }
 });
 
 app.get('/posts', async (req, res) => {
-    const posts = await Post.find().sort({ createdAt: -1 });
-    res.status(200).json(posts);
+    try {
+        const posts = await Post.find().sort({ createdAt: -1 });
+        res.status(200).json(posts);
+    } catch (error) {
+        res.status(500).send('Ошибка сервера.');
+    }
 });
 
 app.listen(PORT, () => {
