@@ -24,7 +24,20 @@ const userSchema = new mongoose.Schema({
     isAdmin: Boolean
 });
 
+const postSchema = new mongoose.Schema({
+    username: String,
+    content: String,
+    media: String,
+    likes: Number,
+    comments: [{
+        username: String,
+        content: String
+    }],
+    createdAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
+const Post = mongoose.model('Post', postSchema);
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
@@ -45,6 +58,18 @@ app.post('/login', async (req, res) => {
     } else {
         res.status(401).send('Неверный ник или пароль.');
     }
+});
+
+app.post('/posts', async (req, res) => {
+    const { username, content, media } = req.body;
+    const newPost = new Post({ username, content, media, likes: 0, comments: [] });
+    await newPost.save();
+    res.status(201).send('Пост успешно опубликован!');
+});
+
+app.get('/posts', async (req, res) => {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.status(200).json(posts);
 });
 
 app.listen(PORT, () => {
