@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000'; // Измените на ваш IP-адрес и порт
+const API_URL = 'https://astrologsecra.github.io/SECRIX/'; // Измените на ваш IP-адрес и порт
 
 async function fetchData(url, options = {}) {
     const response = await fetch(url, options);
